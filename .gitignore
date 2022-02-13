@@ -1,0 +1,7 @@
+/.vs
+/packages
+/Common/Common.csproj.user
+/Common/bin
+/Common/obj
+/CommonDemo.Winform/obj
+/CommonDemo.Winform/bin
