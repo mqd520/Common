@@ -250,6 +250,7 @@ namespace Common
 
 
         #region Send Form
+        #region Send Form Sync
         /// <summary>
         /// Build Form Data
         /// </summary>
@@ -393,6 +394,143 @@ namespace Common
         {
             return BinarySendForm(url, form, Encoding.UTF8, null);
         }
+        #endregion
+
+
+        #region Send Form Async
+        /// <summary>
+        /// Send Form
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="form">form</param>
+        /// <param name="encode">encode</param>
+        /// <param name="headers">dictHeaders</param>
+        /// <param name="lsResponseCookie">lsResponseCookie</param>
+        /// <returns>string</returns>
+        public async static Task<string> SendFormAsync(
+            string url,
+            Dictionary<string, string> form,
+            Encoding encode,
+            Dictionary<string, string> headers,
+            IList<HttpCookie> lsResponseCookie)
+        {
+            string result = "";
+
+            string str = BuildFormData(form, encode);
+            byte[] bytes = string.IsNullOrEmpty(str) ? new byte[0] : encode.GetBytes(str);
+            await SendHttpReqAsync(url, "POST", headers, "application/x-www-form-urlencoded", bytes, async (x, y) =>
+            {
+                if (lsResponseCookie != null)
+                {
+                    var ls = CommonTool.ParseCookies(y.Headers["Set-Cookie"]);
+                    foreach (var item in ls)
+                    {
+                        lsResponseCookie.Add(item);
+                    }
+                }
+
+                using (StreamReader sr = new StreamReader(y.GetResponseStream()))
+                {
+                    result = await sr.ReadToEndAsync();
+                }
+            });
+
+            return result;
+        }
+
+        /// <summary>
+        /// Send Form
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="form">form</param>
+        /// <param name="headers">dictHeaders</param>
+        /// <param name="lsResponseCookie">lsResponseCookie</param>
+        /// <returns>string</returns>
+        public async static Task<string> SendFormAsync(string url,
+            Dictionary<string, string> form,
+            Dictionary<string, string> headers,
+            IList<HttpCookie> lsResponseCookie)
+        {
+            return await SendFormAsync(url, form, Encoding.UTF8, headers, lsResponseCookie);
+        }
+
+        /// <summary>
+        /// Send Form
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="form">form</param>
+        /// <param name="headers">dictHeaders</param>
+        /// <returns>string</returns>
+        public async static Task<string> SendFormAsync(
+            string url,
+            Dictionary<string, string> form,
+            Dictionary<string, string> headers)
+        {
+            return await SendFormAsync(url, form, Encoding.UTF8, headers, null);
+        }
+
+        /// <summary>
+        /// Send Form
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="form">form</param>
+        /// <returns>string</returns>
+        public async static Task<string> SendFormAsync(string url, Dictionary<string, string> form)
+        {
+            return await SendFormAsync(url, form, Encoding.UTF8, null, null);
+        }
+
+        /// <summary>
+        /// Binary Send Form
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="form">form</param>
+        /// <param name="encode">encode</param>
+        /// <param name="headers">dictHeaders</param>
+        /// <returns>string</returns>
+        public async static Task<byte[]> BinarySendFormAsync(
+            string url,
+            Dictionary<string, string> form,
+            Encoding encode,
+            Dictionary<string, string> headers)
+        {
+            byte[] buf = new byte[0];
+
+            string str = BuildFormData(form, encode);
+            byte[] bytes = string.IsNullOrEmpty(str) ? new byte[0] : encode.GetBytes(str);
+            await SendHttpReqAsync(url, "POST", headers, "application/x-www-form-urlencoded", bytes, async (x, y) =>
+            {
+                buf = new byte[y.ContentLength];
+                var s = y.GetResponseStream();
+                await s.ReadAsync(buf, 0, buf.Length);
+            });
+
+            return buf;
+        }
+
+        /// <summary>
+        /// Binary Send Form
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="form">form</param>
+        /// <param name="headers">dictHeaders</param>
+        /// <returns>string</returns>
+        public async static Task<byte[]> BinarySendFormAsync(string url, Dictionary<string, string> form, Dictionary<string, string> headers)
+        {
+            return await BinarySendFormAsync(url, form, Encoding.UTF8, headers);
+        }
+
+        /// <summary>
+        /// Binary Send Form
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="form">form</param>
+        /// <returns>string</returns>
+        public async static Task<byte[]> BinarySendFormAsync(string url, Dictionary<string, string> form)
+        {
+            return await BinarySendFormAsync(url, form, Encoding.UTF8, null);
+        }
+        #endregion
         #endregion
 
 
